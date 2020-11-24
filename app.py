@@ -32,15 +32,31 @@ app = Flask(__name__)
 #################################################
 
 @app.route("/")
-def home():
-    return (
-        "Welcome to Hawaii Weather API Page!<br/>"
-        "/api/v1.0/precipitation<br/>"
-        "/api/v1.0/stations<br/>"
-        "/api/v1.0/tobs<br/>"
-        "/api/v1.0/<start><br/>"
-        "/api/v1.0/<start>/<end>")
-    
+def welcome():
+        return """<html>
+<p>Welcome to Hawaiian Vacation Weather API!</p>        
+<p>Precipitation Analysis:</p>
+<ul>
+  <li><a href="/api/v1.0/precipitation">/api/v1.0/precipitation</a></li>
+</ul>
+<p>Station Analysis:</p>
+<ul>
+  <li><a href="/api/v1.0/stations">/api/v1.0/stations</a></li>
+</ul>
+<p>Temperature Analysis:</p>
+<ul>
+  <li><a href="/api/v1.0/tobs">/api/v1.0/tobs</a></li>
+</ul>
+<p>Start Day Analysis:</p>
+<ul>
+  <li><a href="/api/v1.0/2017-03-11">/api/v1.0/2017-03-11</a></li>
+</ul>
+<p>Start & End Day Analysis:</p>
+<ul>
+  <li><a href="/api/v1.0/2017-03-11/2017-03-18">/api/v1.0/2017-03-11/2017-03-18</a></li>
+</ul>
+</html>
+"""
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
@@ -95,11 +111,23 @@ def start(start):
 
     start_day = session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
                 filter(Measurement.date >= start).group_by(Measurement.date).all()
-    # Convert List of Tuples Into Normal List
+    # Convert list of tuples into normal list
     start_day_list = list(start_day)
-    # Return JSON List of Min Temp, Avg Temp and Max Temp for a Given Start Range
+    # Return JSON list of Min temp, Avg temp and Max temp for a given start range
     return jsonify(start_day_list)
 
+@app.route("/api/v1.0/<start>/<end>")
+def start_end_day(start, end):
+        # Create our session (link) from Python to the DB
+    session = Session(engine)
+    start_end_day = session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs),func.max(Measurement.tobs)).\
+                filter(Measurement.date >= start).\
+                filter(Measurement.date <= end).\
+                group_by(Measurement.date).all()
+    # Convert list of tuples into normal list
+    start_end_day_list = list(start_end_day)
+    # Return JSON list of Min temp, Avg temp and Max temp for a given start-end range
+    return jsonify(start_end_day_list)
 
 if __name__ == '__main__':
     app.run(debug=True)
